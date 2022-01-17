@@ -18,8 +18,10 @@ def create_database():
     cursor.close()
     conn.close()
 
+
 if __name__ == "__main__":
     main()
     create_database()
+    
 
 
