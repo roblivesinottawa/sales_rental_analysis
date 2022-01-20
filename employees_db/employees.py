@@ -191,6 +191,47 @@ class Employees:
             conn.close()
         except Error as e:
             print(e)
+
+    def employee_maximum_salary(self, emp_no : int):
+        "This function will display the maximum salary of an employee"
+        try:
+            conn = self.make_connection()
+            cursor = conn.cursor()
+            cursor.execute(
+                '''
+                SELECT s1.* 
+                FROM salaries AS s1 
+                LEFT JOIN salaries AS s2
+                ON (s1.emp_no = s2.emp_no AND s1.from_date < s2.from_date)
+                WHERE s2.emp_no IS NULL AND s1.emp_no = %s;
+                ''' % emp_no
+            )
+            [print(row) for row in cursor]
+            cursor.close()
+            conn.close()
+        except Error as e:
+            print(e)
+
+    def employee_salary_display(self):
+        "This function will display the salary of an employee"
+        try:
+            conn = self.make_connection()
+            cursor = conn.cursor()
+            cursor.execute(
+                '''
+                SELECT e.emp_no, e.first_name, e.last_name, s.salary, s.from_date
+                FROM employees e
+                INNER JOIN
+                (SELECT emp_no, MAX(salary) AS SALARY, FROM_DATE 
+                FROM salaries GROUP BY emp_no) s
+                ON (e.emp_no = s.emp_no) LIMIT 20;
+                ''' 
+            )
+            [print(row) for row in cursor]
+            cursor.close()
+            conn.close()
+        except Error as e:
+            print(e)
     
 
 
@@ -207,5 +248,7 @@ employees.show_all_tables()
 # employees.employees_salary_higher_than_120000(120000)
 # employees.employees_gender()
 # employees.get_salary_difference(20000)
-employees.is_current_employee()
+# employees.is_current_employee()
+# employees.employee_maximum_salary(10010)
+employees.employee_salary_display()
 
