@@ -233,6 +233,33 @@ class Employees:
         except Error as e:
             print(e)
     
+    def salary_per_title(self):
+        "this function will display salaries for each title descendingly"
+        try:
+            conn = self.make_connection()
+            cursor = conn.cursor()
+            cursor.execute(
+                '''
+                SELECT new_table.title, MAX(new_table.salary) AS salary
+                FROM (
+                    SELECT e.first_name, e.last_name, s.salary AS salary, t.title AS title
+                    FROM employees e
+                    INNER JOIN (
+                        SELECT emp_no, MAX(salary) AS salary FROM salaries GROUP BY emp_no
+                    ) s
+                    ON s.emp_no = e.emp_no
+                    INNER JOIN titles t
+                    ON t.emp_no = e.emp_no
+                )
+                new_table GROUP BY new_table.title
+                ORDER BY salary DESC;
+                '''
+            )
+            [print(row) for row in cursor]
+            cursor.close()
+            conn.close()
+        except Error as e:
+            print(e)
 
 
 employees = Employees('root', input('enter mysql password: '), 'localhost', 'employees')
@@ -250,5 +277,6 @@ employees.show_all_tables()
 # employees.get_salary_difference(20000)
 # employees.is_current_employee()
 # employees.employee_maximum_salary(10010)
-employees.employee_salary_display()
+# employees.employee_salary_display()
+employees.salary_per_title()
 
