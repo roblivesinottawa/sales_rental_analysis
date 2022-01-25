@@ -262,7 +262,7 @@ class Employees:
             print(e)
 
 
-employees = Employees('root', input('enter mysql password: '), 'localhost', 'employees')
+employees = Employees('root', 'mysqlpassmacrob', 'localhost', 'employees')
 employees.make_connection()
 employees.show_database()
 employees.show_all_tables() 
