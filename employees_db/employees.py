@@ -292,6 +292,58 @@ class Employees:
         except Error as e:
             print(e)
 
+    def salary_more_than_manager(self):
+        "This function will display employees and their salaries that are more than their managers"
+        try:
+            conn = self.make_connection()
+            cursor = conn.cursor()
+            cursor.execute(
+                '''
+                SELECT e.emp_no,
+                CONCAT(e.first_name, ' ', e.last_name) AS Employee,
+                e.gender AS Gender,
+                d.dept_name AS department, d.dept_no, s.salary AS Employee_Salary,
+                manager.emp_no AS Manager_id,
+                CONCAT(manager.first_name, ' ', manager.last_name)
+                AS Manager, man_sal.salary AS Manager_Salary
+                FROM current_dept_emp cdept
+                INNER JOIN employees e
+                ON e.emp_no = cdept.emp_no
+                INNER JOIN departments d
+                ON d.dept_no = cdept.dept_no
+                INNER JOIN 
+                (SELECT dept_no AS dn, emp_no AS en FROM 
+                dept_manager WHERE from_date IN
+                (SELECT MAX(from_date) FROM dept_manager GROUP BY dept_no)) dm
+                ON dm.dn = cdept.dept_no
+                INNER JOIN
+                employees manager
+                ON manager.emp_no = dm.en
+                INNER JOIN
+                (SELECT s1.* FROM salaries AS s1 
+                LEFT JOIN salaries AS s2
+                ON (s1.emp_no = s2.emp_no AND s1.from_date < s2.from_date)
+                WHERE s2.from_date IS NULL) s
+                ON s.emp_no = cdept.emp_no
+                INNER JOIN 
+                (SELECT s1.* FROM salaries AS s1 
+                LEFT JOIN salaries AS s2
+                ON (s1.emp_no = s2.emp_no AND s1.from_date < s2.from_date)
+                WHERE s2.from_date IS NULL) man_sal
+                ON man_sal.emp_no = manager.emp_no 
+                WHERE s.salary > man_sal.salary
+                LIMIT 30;
+                '''
+            )
+            [print(row) for row in cursor]
+            cursor.close()
+            conn.close()
+        except Error as e:
+            print(e)
+
+        
+
+
 employees = Employees('root', 'mysqlpassmacrob', 'localhost', 'employees')
 employees.make_connection()
 employees.show_database()
@@ -309,5 +361,6 @@ employees.show_all_tables()
 # employees.employee_maximum_salary(10010)
 # employees.employee_salary_display()
 # employees.salary_per_title()
-employees.get_employee_and_manager()
+# employees.get_employee_and_manager()
+employees.salary_more_than_manager()
 
