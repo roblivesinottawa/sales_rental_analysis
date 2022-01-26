@@ -261,6 +261,36 @@ class Employees:
         except Error as e:
             print(e)
 
+    def get_employee_and_manager(self):
+        "This function will list employees and current department as well as managers they work under"
+        try:
+            conn = self.make_connection()
+            cursor = conn.cursor()
+            cursor.execute(
+                '''
+                SELECT e.emp_no AS Employee_Number,
+                CONCAT(e.first_name, ' ', e.last_name) AS Employee,
+                e.gender AS Gender, d.dept_name AS Department, d.dept_no AS Department_Number,
+                CONCAT(manager.first_name, ' ', manager.last_name) AS Manager
+                FROM current_dept_emp cdept
+                INNER JOIN employees e 
+                ON e.emp_no = cdept.emp_no
+                INNER JOIN departments d
+                ON d.dept_no = cdept.dept_no
+                INNER JOIN (SELECT dept_no AS dn, emp_no AS en FROM 
+                dept_manager WHERE from_date IN (SELECT MAX(from_date) 
+                FROM dept_manager GROUP BY dept_no)) dm
+                ON dm.dn = cdept.dept_no 
+                INNER JOIN employees manager
+                ON manager.emp_no = dm.en
+                LIMIT 20;
+                '''
+            )
+            [print(row) for row in cursor]
+            cursor.close()
+            conn.close()
+        except Error as e:
+            print(e)
 
 employees = Employees('root', 'mysqlpassmacrob', 'localhost', 'employees')
 employees.make_connection()
@@ -278,5 +308,6 @@ employees.show_all_tables()
 # employees.is_current_employee()
 # employees.employee_maximum_salary(10010)
 # employees.employee_salary_display()
-employees.salary_per_title()
+# employees.salary_per_title()
+employees.get_employee_and_manager()
 
